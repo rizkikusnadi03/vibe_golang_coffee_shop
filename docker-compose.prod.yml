@@ -1,14 +1,9 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
-    container_name: coffee_pos_mysql
+    container_name: coffee_pos_mysql_prod
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:3306:3306"
     environment:
-      # Pastikan variabel ini ada di file .env
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
     volumes:
@@ -23,18 +18,32 @@ services:
       - coffee-pos-network
 
   redis:
-    image: redis:7-alpine # Sudah diperbaiki dari 'reddis'
-    container_name: coffee_pos_redis
+    image: redis:7-alpine
+    container_name: coffee_pos_redis_prod
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: "redis-cli -a $$REDIS_PASSWORD ping"
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - coffee-pos-network
+
+  app:
+    build: .
+    container_name: coffee_pos_app_prod
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file: .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - coffee-pos-network
 
