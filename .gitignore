@@ -2,3 +2,10 @@
 vendor/
 *.exe
 tmp/
+API_CONTRACT.md
+SCHEMA.md
+postman_collection.json
+postman_environment_local.json
+postman_environment_production.json
+PRD.md
+README.md
